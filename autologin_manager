@@ -1,0 +1,91 @@
+#!/bin/sh
+
+# Header wajib untuk output HTML
+echo "Content-type: text/html"
+echo ""
+
+# --- FUNGSI ---
+parse_post_data() {
+    read POST_DATA
+    eval $(echo "$POST_DATA" | sed -e 's/&/ /g' -e 's/=/=/g' | awk '{ for(i=1; i<=NF; i++) { print "FORM_" $i } }')
+}
+
+# --- LOGIKA PEMROSESAN ---
+if [ "$REQUEST_METHOD" = "POST" ]; then
+    parse_post_data
+    if [ "$FORM_action" = "save" ]; then
+        uci set autologin.settings.url="$FORM_url"
+        uci set autologin.settings.email_field="$FORM_email_field"
+        uci set autologin.settings.enabled="$FORM_enabled"
+        uci commit autologin
+        /etc/init.d/autologin restart > /dev/null 2>&1 &
+    fi
+fi
+
+# --- MEMBACA STATUS DAN LOG SAAT INI ---
+CURRENT_URL=$(uci get autologin.settings.url)
+CURRENT_EMAIL_FIELD=$(uci get autologin.settings.email_field)
+CURRENT_ENABLED=$(uci get autologin.settings.enabled)
+
+SERVICE_STATUS=$(pgrep -f "/usr/bin/autologin_wifi.sh")
+if [ -n "$SERVICE_STATUS" ]; then
+    STATUS_TEXT="<span style='color:green;'>Berjalan (PID: $SERVICE_STATUS)</span>"
+else
+    STATUS_TEXT="<span style='color:red;'>Tidak Berjalan</span>"
+fi
+
+# Membaca 20 baris log terakhir
+LOG_OUTPUT=$(logread | grep "AutoLoginWiFi" | tail -n 20)
+
+
+# --- OUTPUT HTML ---
+cat <<EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto Login WiFi Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; background-color: #f0f0f0; margin: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type=text], select { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; padding: 10px 15px; margin-top: 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .status { margin-top: 20px; padding: 10px; background: #eee; border-radius: 4px; }
+        textarea { 
+            width: 100%; height: 250px; background-color: #2b2b2b; color: #f0f0f0; 
+            font-family: monospace; font-size: 12px; border: 1px solid #ccc; 
+            border-radius: 4px; margin-top: 10px; box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Auto Login WiFi Manager</h1>
+        <div class="status">
+            <h2>Status Layanan</h2>
+            <p>Saat ini: $STATUS_TEXT</p>
+        </div>
+        <h2>Konfigurasi</h2>
+        <form method="POST" action="/cgi-bin/autologin_manager">
+            <label for="enabled">Status Layanan:</label>
+            <select name="enabled" id="enabled">
+                <option value="1" $([ "$CURRENT_ENABLED" = "1" ] && echo "selected")>Aktif</option>
+                <option value="0" $([ "$CURRENT_ENABLED" = "0" ] && echo "selected")>Nonaktif</option>
+            </select>
+            <label for="url">URL Login Portal:</label>
+            <input type="text" id="url" name="url" value="$CURRENT_URL">
+            <label for="email_field">Nama Field Email:</label>
+            <input type="text" id="email_field" name="email_field" value="$CURRENT_EMAIL_FIELD">
+            <button type="submit" name="action" value="save">Simpan & Terapkan</button>
+        </form>
+        <div class="log-section">
+            <h2>Log Terbaru (20 Baris Terakhir)</h2>
+            <textarea readonly>$LOG_OUTPUT</textarea>
+        </div>
+    </div>
+</body>
+</html>
+EOF

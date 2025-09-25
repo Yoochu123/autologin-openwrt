@@ -1,0 +1,25 @@
+#!/bin/sh /etc/rc.common
+
+# Nama layanan
+START=99
+STOP=10
+USE_PROCD=1
+    
+# Tag untuk log dari skrip init ini
+LOG_TAG="AutoLoginWiFi-Service"
+
+start_service() {
+    # Mencatat ke sistem log bahwa layanan dimulai
+    logger -t "$LOG_TAG" "Layanan AutoLogin WiFi sedang dimulai..."
+
+    # procd akan mengelola proses agar tetap berjalan
+    procd_open_instance
+    procd_set_param command /bin/sh "/usr/bin/autologin_wifi.sh"
+    procd_set_param respawn
+    procd_close_instance
+}
+
+stop_service() {
+    # Mencatat ke sistem log bahwa layanan dihentikan
+    logger -t "$LOG_TAG" "Layanan AutoLogin WiFi dihentikan."
+}
