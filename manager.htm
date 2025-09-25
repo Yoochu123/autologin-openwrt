@@ -1,3 +1,95 @@
+<%+header%>
+
 <%
-    luci.sys.call("sh /www/cgi-bin/autologin_manager embedded > /dev/stdout")
+    local uci = require "luci.model.uci".cursor()
+    local http = require "luci.http"
+    local sys = require "luci.sys"
+
+    -- 1. Tangani jika ada form yang di-submit
+    if http.formvalue("action") == "save" then
+        local new_enabled_status = http.formvalue("enabled")
+
+        -- Simpan semua perubahan konfigurasi
+        uci:set("autologin", "settings", "url", http.formvalue("url"))
+        uci:set("autologin", "settings", "email_field", http.formvalue("email_field"))
+        uci:set("autologin", "settings", "enabled", new_enabled_status)
+        uci:save("autologin")
+        uci:commit("autologin")
+
+        -- Jalankan perintah yang sesuai berdasarkan status baru
+        if new_enabled_status == "1" then
+            -- Jika diaktifkan, jalankan enable dan start
+            sys.call("/etc/init.d/autologin enable > /dev/null 2>&1")
+            sys.call("/etc/init.d/autologin start > /dev/null 2>&1 &")
+        else
+            -- Jika dinonaktifkan, jalankan stop dan disable
+            sys.call("/etc/init.d/autologin stop > /dev/null 2>&1")
+            sys.call("/etc/init.d/autologin disable > /dev/null 2>&1")
+        end
+        -- Baris redirect dihapus untuk menghilangkan pesan "302 Found"
+    end
+
+    -- Ambil data konfigurasi saat ini dari UCI
+    local current_url = uci:get("autologin", "settings", "url")
+    local current_email_field = uci:get("autologin", "settings", "email_field")
+    local current_enabled = uci:get("autologin", "settings", "enabled")
+
+    -- Cek status layanan
+    local pid = sys.exec("pgrep -f '/usr/bin/autologin_wifi.sh'")
+    local status_text
+    if pid and pid ~= "" and current_enabled == "1" then
+        status_text = "<span style='color:green;'>Berjalan (PID: " .. pid:gsub('[\r\n]', '') .. ")</span>"
+    else
+        status_text = "<span style='color:red;'>Tidak Berjalan</span>"
+    end
+
+    local log_output = sys.exec("logread | grep 'AutoLoginWiFi' | tail -n 20")
 %>
+
+<div class="cbi-map">
+    <h2>Auto Login WiFi Manager</h2>
+    <div class="cbi-section">
+        <div class="cbi-section-node">
+            <div class="cbi-value">
+                <label class="cbi-value-title">Status Layanan</label>
+                <div class="cbi-value-field"><%= status_text %></div>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="<%= REQUEST_URI %>">
+        <div class="cbi-section">
+            <div class="cbi-section-node">
+                <div class="cbi-value">
+                    <label class="cbi-value-title" for="enabled">Status Layanan</label>
+                    <div class="cbi-value-field">
+                        <select name="enabled" id="enabled">
+                            <option value="1" <% if current_enabled == "1" then luci.http.write("selected='selected'") end %>>Aktif</option>
+                            <option value="0" <% if current_enabled == "0" then luci.http.write("selected='selected'") end %>>Nonaktif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="cbi-value">
+                    <label class="cbi-value-title" for="url">URL Login Portal</label>
+                    <div class="cbi-value-field"><input type="text" style="width:400px;" name="url" id="url" value="<%= luci.http.write(current_url or '') %>" /></div>
+                </div>
+                <div class="cbi-value">
+                    <label class="cbi-value-title" for="email_field">Nama Field Email</label>
+                    <div class="cbi-value-field"><input type="text" style="width:400px;" name="email_field" id="email_field" value="<%= luci.http.write(current_email_field or '') %>" /></div>
+                </div>
+                <div class="cbi-value">
+                    <div class="cbi-value-field">
+                        <button type="submit" name="action" class="cbi-button cbi-button-apply" value="save">Simpan & Terapkan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="cbi-section">
+        <h3>Log Terbaru</h3>
+        <textarea readonly="readonly" style="width: 100%; height: 250px; background-color: #2b2b2b; color: #f0f0f0; font-family: monospace; font-size: 12px;"><%= luci.http.write(log_output or '') %></textarea>
+    </div>
+</div>
+
+<%+footer%>
