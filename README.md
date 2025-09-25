@@ -56,3 +56,40 @@ wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/Uni
 ```
 
 Proses ini akan menghentikan layanan, menghapus semua file terkait, dan membersihkan entri menu dari LuCI.
+
+
+# Cara Menemukan Konfigurasi Portal
+
+Untuk menggunakan skrip ini, Anda memerlukan dua informasi dari halaman login (captive portal) WiFi publik: **URL Aksi Login** dan **Nama Field Email**. Berikut cara menemukannya menggunakan browser di laptop atau PC.
+
+1.  **Hubungkan ke WiFi**
+    Sambungkan perangkat Anda ke jaringan WiFi publik. Halaman login akan muncul secara otomatis di browser Anda.
+
+2.  **Buka Developer Tools**
+    Di halaman login tersebut, klik kanan pada kolom tempat Anda biasa memasukkan alamat email, lalu pilih **"Inspect"** atau **"Inspect Element"**. Anda juga bisa menekan tombol `F12` atau `Ctrl+Shift+I` (`Cmd+Opt+I` di Mac).
+    Sebuah panel baru akan muncul di samping atau di bawah halaman.
+
+3.  **Cari Elemen `<form>`**
+    Di dalam panel Developer Tools, Anda akan melihat kode HTML dari halaman tersebut. Klik pada ikon panah di pojok kiri atas panel (biasanya disebut "Select an element"), lalu klik kembali pada kolom input email di halaman. Ini akan menyorot baris kode `<input>` yang relevan.
+    Lihat beberapa baris ke atas dari kode `<input>` yang disorot tersebut hingga Anda menemukan tag pembuka yang diawali dengan `<form ...>`.
+
+4.  **Temukan URL Aksi Login**
+    Di dalam tag `<form>` tersebut, cari atribut yang bernama `action`. Nilai dari `action` inilah yang Anda butuhkan untuk kolom **"URL Login Portal"**.
+
+5.  **Temukan Nama Field Email**
+    Sekarang, lihat kembali baris `<input>` yang tadi Anda sorot. Di dalam tag tersebut, cari atribut yang bernama `name`. Nilai dari `name` inilah yang Anda butuhkan untuk kolom **"Nama Field Email"**.
+
+### Contoh
+
+Jika Anda menemukan kode HTML seperti ini di Developer Tools:
+
+<form method="post" action="[http://connect.wifiprovider.net/login_process](http://connect.wifiprovider.net/login_process)">
+    <p>Masukkan email untuk terhubung:</p>
+    <input type="text" name="user_email_address" placeholder="email@contoh.com">
+    <button type="submit">Connect</button>
+</form>
+
+
+Maka konfigurasi yang perlu Anda masukkan ke antarmuka web adalah:
+* **URL Login Portal**: `http://connect.wifiprovider.net/login_process`
+* **Nama Field Email**: `user_email_address`
