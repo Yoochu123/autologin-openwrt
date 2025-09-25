@@ -36,8 +36,9 @@ opkg install libustream-openssl ca-bundle ca-certificates
 
 
 3. instal Script AutoLogin:
+
 ```
-wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/Installer.sh
+wget -O Installer.sh https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/Installer.sh
 ```
 
 4. Jalankan file yang sudah diunduh
