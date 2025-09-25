@@ -1,4 +1,4 @@
-# OpenWrt Auto-Login for Public WiFi
+# OpenWrt Auto-Login for Captive portal
 
 Sebuah paket skrip lengkap untuk router OpenWrt yang secara otomatis melakukan login ke *captive portal* WiFi publik yang hanya memerlukan email. Dilengkapi dengan antarmuka web yang terintegrasi ke menu LuCI untuk kemudahan konfigurasi dan monitoring.
 
@@ -83,12 +83,13 @@ Untuk menggunakan skrip ini, Anda memerlukan dua informasi dari halaman login (c
 
 Jika Anda menemukan kode HTML seperti ini di Developer Tools:
 
+```html
 <form method="post" action="[http://connect.wifiprovider.net/login_process](http://connect.wifiprovider.net/login_process)">
     <p>Masukkan email untuk terhubung:</p>
     <input type="text" name="user_email_address" placeholder="email@contoh.com">
     <button type="submit">Connect</button>
 </form>
-
+```
 
 Maka konfigurasi yang perlu Anda masukkan ke antarmuka web adalah:
 * **URL Login Portal**: `http://connect.wifiprovider.net/login_process`
