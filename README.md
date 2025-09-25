@@ -15,30 +15,39 @@ Sebuah paket skrip lengkap untuk router OpenWrt yang secara otomatis melakukan l
 
 ## Persyaratan
 
--   Router yang menjalankan OpenWrt.
+-   Router yang menjalankan OpenWrt. (terinstall package Wget dukungan SSL)
 -   Akses SSH ke router.
 -   Koneksi internet awal untuk mengunduh skrip installer.
 
-## Instalasi
+# Instalasi
 
 Buka terminal SSH ke router OpenWrt Anda dan jalankan perintah tunggal berikut. Skrip ini akan mengunduh semua file yang diperlukan, menempatkannya di direktori yang benar, mengatur izin, membuat konfigurasi awal, dan memulai layanan secara otomatis.
 
-**PENTING**: Ganti `NAMA_PENGGUNA_GITHUB` dan `NAMA_REPO_ANDA` dengan nama pengguna dan repositori GitHub Anda.
+1. Pertama, lakukan Opkg update :
 
-```sh
-wget -O - [https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/install.sh](https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/install.sh) | sh
+```
+opkg update
+```
+
+2. instal paket SSL yang diperlukan:
+```
+opkg install libustream-openssl ca-bundle ca-certificates
+```
+
+
+3. instal Script AutoLogin:
+```
+wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/install.sh | sh
 ```
 
 Setelah instalasi selesai, segarkan (refresh) halaman LuCI Anda. Entri menu baru bernama **"AutoLogin WiFi"** akan muncul di bawah **"Services"**. Klik menu tersebut untuk melakukan konfigurasi.
 
-## Uninstall
+# Uninstall
 
 Untuk menghapus semua file, konfigurasi, dan layanan yang terkait dengan paket ini, jalankan perintah tunggal berikut di terminal SSH.
 
-**PENTING**: Ganti `NAMA_PENGGUNA_GITHUB` dan `NAMA_REPO_ANDA` dengan nama pengguna dan repositori GitHub Anda.
-
 ```sh
-wget -O - [https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/uninstall.sh](https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/uninstall.sh) | sh
+wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/uninstall.sh | sh
 ```
 
 Proses ini akan menghentikan layanan, menghapus semua file terkait, dan membersihkan entri menu dari LuCI.
