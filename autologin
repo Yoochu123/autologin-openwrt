@@ -1,0 +1,19 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+STOP=10
+USE_PROCD=1
+    
+LOG_TAG="AutoLoginWiFi-Service"
+
+start_service() {
+    logger -t "$LOG_TAG" "Layanan AutoLogin WiFi sedang dimulai..."
+    procd_open_instance
+    procd_set_param command /bin/sh "/usr/bin/autologin_wifi.sh"
+    procd_set_param respawn
+    procd_close_instance
+}
+
+stop_service() {
+    logger -t "$LOG_TAG" "Layanan AutoLogin WiFi dihentikan."
+}

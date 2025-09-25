@@ -1,0 +1,77 @@
+#!/bin/sh
+
+if [ "$1" != "embedded" ]; then
+    echo "Content-type: text/html"
+    echo ""
+    cat <<EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auto Login WiFi Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+EOF
+fi
+
+parse_post_data() {
+    read POST_DATA
+    eval $(echo "$POST_DATA" | sed -e 's/&/ /g' -e 's/=/=/g' | awk '{ for(i=1; i<=NF; i++) { print "FORM_" $i } }')
+}
+
+if [ "$REQUEST_METHOD" = "POST" ]; then
+    parse_post_data
+    if [ "$FORM_action" = "save" ]; then
+        uci set autologin.settings.url="$FORM_url"
+        uci set autologin.settings.email_field="$FORM_email_field"
+        uci set autologin.settings.enabled="$FORM_enabled"
+        uci commit autologin
+        /etc/init.d/autologin restart > /dev/null 2>&1 &
+    fi
+fi
+
+CURRENT_URL=$(uci get autologin.settings.url)
+CURRENT_EMAIL_FIELD=$(uci get autologin.settings.email_field)
+CURRENT_ENABLED=$(uci get autologin.settings.enabled)
+SERVICE_STATUS=$(pgrep -f "/usr/bin/autologin_wifi.sh")
+if [ -n "$SERVICE_STATUS" ]; then
+    STATUS_TEXT="<span style='color:green;'>Berjalan (PID: $SERVICE_STATUS)</span>"
+else
+    STATUS_TEXT="<span style='color:red;'>Tidak Berjalan</span>"
+fi
+LOG_OUTPUT=$(logread | grep "AutoLoginWiFi" | tail -n 20)
+
+cat <<EOF
+<div class="container">
+    <h2>Auto Login WiFi Manager</h2>
+    <div class="status">
+        <h4>Status Layanan</h4>
+        <p>Saat ini: $STATUS_TEXT</p>
+    </div>
+    <h4>Konfigurasi</h4>
+    <form method="POST" action="/cgi-bin/luci/admin/services/autologin">
+        <label for="enabled">Status Layanan:</label>
+        <select name="enabled" id="enabled">
+            <option value="1" $([ "$CURRENT_ENABLED" = "1" ] && echo "selected")>Aktif</option>
+            <option value="0" $([ "$CURRENT_ENABLED" = "0" ] && echo "selected")>Nonaktif</option>
+        </select><br><br>
+        <label for="url">URL Login Portal:</label>
+        <input type="text" id="url" name="url" value="$CURRENT_URL" style="width: 100%;">
+        <label for="email_field">Nama Field Email:</label>
+        <input type="text" id="email_field" name="email_field" value="$CURRENT_EMAIL_FIELD" style="width: 100%;">
+        <button type="submit" name="action" value="save" style="margin-top: 10px;">Simpan & Terapkan</button>
+    </form>
+    <div class="log-section">
+        <h4>Log Terbaru</h4>
+        <textarea readonly style="width: 100%; height: 250px; background-color: #2b2b2b; color: #f0f0f0; font-family: monospace; font-size: 12px;">$LOG_OUTPUT</textarea>
+    </div>
+</div>
+EOF
+
+if [ "$1" != "embedded" ]; then
+    echo "</body></html>"
+fi
