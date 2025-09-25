@@ -44,12 +44,14 @@ chmod +x /etc/init.d/autologin
 chmod +x /www/cgi-bin/autologin_manager
 
 # 5. Buat konfigurasi awal di UCI
+# 5. Buat konfigurasi awal secara langsung
 log "Membuat konfigurasi awal..."
-uci set autologin.settings='settings'
-uci set autologin.settings.url='http://ganti-dengan-url.portal/login'
-uci set autologin.settings.email_field='email'
-uci set autologin.settings.enabled='1'
-uci commit autologin
+cat <<EOF > /etc/config/autologin
+config settings 'settings'
+    option url 'http://ganti-dengan-url.portal/login'
+    option email_field 'email'
+    option enabled '1'
+EOF
 
 # --- BAGIAN BARU: Membuat Entri Menu LuCI ---
 log "Membuat entri menu LuCI..."
