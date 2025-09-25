@@ -37,9 +37,13 @@ opkg install libustream-openssl ca-bundle ca-certificates
 
 3. instal Script AutoLogin:
 ```
-wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/Installer.sh | sh
+wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/Installer.sh
 ```
 
+4. Jalankan file yang sudah diunduh
+```
+sh Installer.sh
+```
 Setelah instalasi selesai, segarkan (refresh) halaman LuCI Anda. Entri menu baru bernama **"AutoLogin WiFi"** akan muncul di bawah **"Services"**. Klik menu tersebut untuk melakukan konfigurasi.
 
 # Uninstall
