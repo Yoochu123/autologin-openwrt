@@ -1,8 +1,8 @@
 #!/bin/sh
 
 # --- KONFIGURASI ---
-GITHUB_USER="NAMA_PENGGUNA_GITHUB"
-GITHUB_REPO="NAMA_REPO_ANDA"
+GITHUB_USER="Yoochu123"
+GITHUB_REPO="autologin-openwrt"
 BRANCH="main"
 
 BASE_URL="https://raw.githubusercontent.com/$GITHUB_USER/$GITHUB_REPO/$BRANCH"
