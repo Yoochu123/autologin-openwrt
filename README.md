@@ -52,7 +52,7 @@ Setelah instalasi selesai, segarkan (refresh) halaman LuCI Anda. Entri menu baru
 Untuk menghapus semua file, konfigurasi, dan layanan yang terkait dengan paket ini, jalankan perintah tunggal berikut di terminal SSH.
 
 ```sh
-wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/uninstall.sh | sh
+wget -O - https://raw.githubusercontent.com/Yoochu123/autologin-openwrt/main/Uninstall.sh | sh
 ```
 
 Proses ini akan menghentikan layanan, menghapus semua file terkait, dan membersihkan entri menu dari LuCI.
